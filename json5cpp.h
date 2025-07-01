@@ -655,6 +655,8 @@ inline void serializeNewLine(
 inline bool parseObject(Reader &r, Json::Value &v, std::string *err, int depth) {
 	r.get(); // '{'
 
+	bool firstKey = true;
+
 	v = Json::objectValue;
 	while (true) {
 		bool newline = skipWhitespace(r);
@@ -679,6 +681,15 @@ inline bool parseObject(Reader &r, Json::Value &v, std::string *err, int depth) 
 		if (ch == '}') {
 			r.get();
 			return true;
+		}
+
+		if (firstKey) {
+			if (comma) {
+				error(r.loc(), err, "Invalid character");
+				return false;
+			}
+			comma = true;
+			firstKey = false;
 		}
 
 		if (r.conf().newlinesAsCommas) {
@@ -755,6 +766,7 @@ inline void serializeObject(
 inline bool parseArray(Reader &r, Json::Value &v, std::string *err, int depth) {
 	r.get(); // '['
 
+	bool firstKey = true;
 	v = Json::arrayValue;
 	Json::ArrayIndex index = 0;
 	while (true) {
@@ -775,6 +787,15 @@ inline bool parseArray(Reader &r, Json::Value &v, std::string *err, int depth) {
 			}
 
 			comma = true;
+		}
+
+		if (firstKey) {
+			if (comma) {
+				error(r.loc(), err, "Invalid character");
+				return false;
+			}
+			comma = true;
+			firstKey = false;
 		}
 
 		if (ch == ']') {
